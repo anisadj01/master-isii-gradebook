@@ -2,8 +2,9 @@ import { useState, useCallback } from 'react';
 import WelcomeIntro from '@/components/WelcomeIntro';
 import MainDashboard from '@/components/MainDashboard';
 import SemesterView from '@/components/SemesterView';
+import { semester1Units, semester2Units } from '@/lib/modules';
 
-type AppView = 'intro' | 'dashboard' | 'semester';
+type AppView = 'intro' | 'dashboard' | 'semester1' | 'semester2';
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<AppView>('intro');
@@ -12,8 +13,8 @@ const Index = () => {
     setCurrentView('dashboard');
   }, []);
 
-  const handleNavigateToSemester = useCallback(() => {
-    setCurrentView('semester');
+  const handleNavigateToSemester = useCallback((semester: 1 | 2) => {
+    setCurrentView(semester === 1 ? 'semester1' : 'semester2');
   }, []);
 
   const handleBackToDashboard = useCallback(() => {
@@ -30,8 +31,20 @@ const Index = () => {
         <MainDashboard onNavigateToSemester={handleNavigateToSemester} />
       )}
       
-      {currentView === 'semester' && (
-        <SemesterView onBack={handleBackToDashboard} />
+      {currentView === 'semester1' && (
+        <SemesterView 
+          title="Semestre 1"
+          units={semester1Units}
+          onBack={handleBackToDashboard} 
+        />
+      )}
+
+      {currentView === 'semester2' && (
+        <SemesterView 
+          title="Semestre 2"
+          units={semester2Units}
+          onBack={handleBackToDashboard} 
+        />
       )}
     </>
   );
