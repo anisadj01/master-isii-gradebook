@@ -11,7 +11,7 @@ export interface UnitEnseignement {
   id: string;
   name: string;
   code: string;
-  type: 'fundamental' | 'methodology' | 'transversal';
+  type: 'fundamental' | 'methodology' | 'transversal' | 'discovery';
   modules: Module[];
 }
 
@@ -130,6 +130,121 @@ export const semester1Units: UnitEnseignement[] = [
   },
 ];
 
+export const semester2Units: UnitEnseignement[] = [
+  {
+    id: 'uef3',
+    name: 'Unité Fondamentale 3',
+    code: 'UEF3',
+    type: 'fundamental',
+    modules: [
+      {
+        id: 'j2ee',
+        name: 'Architecture Web J2EE',
+        coefficient: 3,
+        credits: 5,
+        ccWeight: 0.4,
+        examWeight: 0.6,
+      },
+      {
+        id: 'bdd-avancees',
+        name: 'Bases de Données Avancées',
+        coefficient: 3,
+        credits: 4,
+        ccWeight: 0.4,
+        examWeight: 0.6,
+      },
+    ],
+  },
+  {
+    id: 'uef4',
+    name: 'Unité Fondamentale 4',
+    code: 'UEF4',
+    type: 'fundamental',
+    modules: [
+      {
+        id: 'data-mining',
+        name: 'Data Mining',
+        coefficient: 3,
+        credits: 6,
+        ccWeight: 0.4,
+        examWeight: 0.6,
+      },
+      {
+        id: 'entrepot',
+        name: 'Entrepôt de Données',
+        coefficient: 2,
+        credits: 3,
+        ccWeight: 0.4,
+        examWeight: 0.6,
+      },
+    ],
+  },
+  {
+    id: 'uem3',
+    name: 'Méthodologie 3',
+    code: 'UEM3',
+    type: 'methodology',
+    modules: [
+      {
+        id: 'crypto',
+        name: 'Cryptographie',
+        coefficient: 2,
+        credits: 3,
+        ccWeight: 0.4,
+        examWeight: 0.6,
+      },
+      {
+        id: 'meps',
+        name: "Méthodes d'Évaluation des Performances des Systèmes",
+        coefficient: 2,
+        credits: 3,
+        ccWeight: 0.4,
+        examWeight: 0.6,
+      },
+      {
+        id: 'vision',
+        name: 'Introduction à la Vision par Ordinateur',
+        coefficient: 2,
+        credits: 3,
+        ccWeight: 0.4,
+        examWeight: 0.6,
+      },
+    ],
+  },
+  {
+    id: 'ued1',
+    name: 'Découverte',
+    code: 'UED1',
+    type: 'discovery',
+    modules: [
+      {
+        id: 'culture',
+        name: 'Culture d\'entreprise / Déontologie du travail',
+        coefficient: 1,
+        credits: 2,
+        ccWeight: 0.4,
+        examWeight: 0.6,
+      },
+    ],
+  },
+  {
+    id: 'uet2',
+    name: 'Transversale',
+    code: 'UET2',
+    type: 'transversal',
+    modules: [
+      {
+        id: 'anglais',
+        name: 'Anglais de base',
+        coefficient: 1,
+        credits: 1,
+        ccWeight: 1.0,
+        examWeight: 0,
+      },
+    ],
+  },
+];
+
 export interface GradeInput {
   cc: number | null;
   exam: number | null;
@@ -143,30 +258,9 @@ export function calculateModuleAverage(
   grades: GradeInput,
   module: Module
 ): number | null {
-  if (grades.cc === null || grades.exam === null) return null;
-  return grades.cc * module.ccWeight + grades.exam * module.examWeight;
-}
-
-export function calculateUnitAverage(
-  unit: UnitEnseignement,
-  allGrades: Grades
-): number | null {
-  let totalWeighted = 0;
-  let totalCoeff = 0;
-
-  for (const module of unit.modules) {
-    const grades = allGrades[module.id];
-    if (!grades) return null;
-    
-    const moduleAvg = calculateModuleAverage(grades, module);
-    if (moduleAvg === null) return null;
-
-    totalWeighted += moduleAvg * module.coefficient;
-    totalCoeff += module.coefficient;
-  }
-
-  if (totalCoeff === 0) return null;
-  return totalWeighted / totalCoeff;
+  if (grades.cc === null) return null;
+  if (module.examWeight > 0 && grades.exam === null) return null;
+  return grades.cc * module.ccWeight + (grades.exam ?? 0) * module.examWeight;
 }
 
 export function calculateSemesterAverage(
@@ -203,4 +297,14 @@ export function getTotalCoefficients(units: UnitEnseignement[]): number {
   return units.reduce((total, unit) => 
     total + unit.modules.reduce((sum, mod) => sum + mod.coefficient, 0), 0
   );
+}
+
+export function getAllModules(units: UnitEnseignement[]): Array<Module & { unitCode: string }> {
+  const modules: Array<Module & { unitCode: string }> = [];
+  for (const unit of units) {
+    for (const module of unit.modules) {
+      modules.push({ ...module, unitCode: unit.code });
+    }
+  }
+  return modules;
 }
