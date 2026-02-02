@@ -1,13 +1,39 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState, useCallback } from 'react';
+import WelcomeIntro from '@/components/WelcomeIntro';
+import MainDashboard from '@/components/MainDashboard';
+import SemesterView from '@/components/SemesterView';
+
+type AppView = 'intro' | 'dashboard' | 'semester';
 
 const Index = () => {
+  const [currentView, setCurrentView] = useState<AppView>('intro');
+
+  const handleIntroComplete = useCallback(() => {
+    setCurrentView('dashboard');
+  }, []);
+
+  const handleNavigateToSemester = useCallback(() => {
+    setCurrentView('semester');
+  }, []);
+
+  const handleBackToDashboard = useCallback(() => {
+    setCurrentView('dashboard');
+  }, []);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
+    <>
+      {currentView === 'intro' && (
+        <WelcomeIntro onComplete={handleIntroComplete} />
+      )}
+      
+      {currentView === 'dashboard' && (
+        <MainDashboard onNavigateToSemester={handleNavigateToSemester} />
+      )}
+      
+      {currentView === 'semester' && (
+        <SemesterView onBack={handleBackToDashboard} />
+      )}
+    </>
   );
 };
 
