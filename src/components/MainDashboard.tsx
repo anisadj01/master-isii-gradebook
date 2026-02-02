@@ -118,7 +118,7 @@ const MainDashboard = ({ onNavigateToSemester }: MainDashboardProps) => {
 
       {/* Footer */}
       <footer className="py-6 md:py-8 text-center text-xs md:text-sm text-muted-foreground">
-        <p>© 2024 – Application de calcul de moyenne Master ISII</p>
+        <p>© 2026 – Développé par Adjir Anis | Master ISII – Université d’Alger 1</p>
       </footer>
     </div>
   );
