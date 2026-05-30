@@ -161,63 +161,72 @@ const SemesterView = ({ title, units, onBack }: SemesterViewProps) => {
                 </tr>
               </thead>
               <tbody>
-                {allModules.map((module) => {
-                  const moduleGrades = grades[module.id] || { td: null, tp: null, exam: null };
-                  const average = calculateModuleAverage(moduleGrades, module);
-                  const isModulePassing = average !== null && average >= 10;
-                  const earnedCredits = isModulePassing ? module.credits : 0;
+                {units.map((unit, unitIndex) =>
+                  unit.modules.map((module, moduleIndex) => {
+                    const moduleGrades = grades[module.id] || { td: null, tp: null, exam: null };
+                    const average = calculateModuleAverage(moduleGrades, module);
+                    const isModulePassing = average !== null && average >= 10;
+                    const earnedCredits = isModulePassing ? module.credits : 0;
+                    const isLastInUnit = moduleIndex === unit.modules.length - 1;
+                    const isLastOverall = unitIndex === units.length - 1 && isLastInUnit;
 
-                  const renderInput = (field: 'td' | 'tp' | 'exam', enabled: boolean) =>
-                    enabled ? (
-                      <Input
-                        type="number"
-                        min={0}
-                        max={20}
-                        step={0.25}
-                        value={moduleGrades[field] ?? ''}
-                        onChange={(e) => handleGradeChange(module.id, field, e.target.value)}
-                        placeholder="--"
-                        className="w-14 md:w-16 text-center text-xs md:text-sm h-8 mx-auto"
-                      />
-                    ) : (
-                      <span className="text-muted-foreground text-xs">N/A</span>
+                    const renderInput = (field: 'td' | 'tp' | 'exam', enabled: boolean) =>
+                      enabled ? (
+                        <Input
+                          type="number"
+                          min={0}
+                          max={20}
+                          step={0.25}
+                          value={moduleGrades[field] ?? ''}
+                          onChange={(e) => handleGradeChange(module.id, field, e.target.value)}
+                          placeholder="--"
+                          className="w-14 md:w-16 text-center text-xs md:text-sm h-8 mx-auto"
+                        />
+                      ) : (
+                        <span className="text-muted-foreground text-xs">N/A</span>
+                      );
+
+                    return (
+                      <tr
+                        key={module.id}
+                        className={`border-b border-border/50 hover:bg-muted/30 transition-colors ${
+                          isLastInUnit && !isLastOverall ? 'border-b-2 border-b-primary/30' : ''
+                        }`}
+                      >
+                        <td className="py-3 px-2 md:px-4">
+                          <span className="font-medium text-foreground text-xs md:text-sm line-clamp-2">{module.name}</span>
+                          <span className="sm:hidden text-xs text-muted-foreground ml-1">({unit.code})</span>
+                        </td>
+                        <td className="py-3 px-1 md:px-2 text-center hidden sm:table-cell">
+                          <Badge variant="outline" className="text-xs">{unit.code}</Badge>
+                        </td>
+                        <td className="py-3 px-1 md:px-2 text-center text-xs md:text-sm">{module.coefficient}</td>
+                        <td className="py-3 px-1 md:px-2 text-center text-xs md:text-sm hidden md:table-cell">{module.credits}</td>
+                        <td className="py-3 px-1 md:px-2">{renderInput('td', module.tdWeight > 0)}</td>
+                        <td className="py-3 px-1 md:px-2">{renderInput('tp', module.tpWeight > 0)}</td>
+                        <td className="py-3 px-1 md:px-2">{renderInput('exam', module.examWeight > 0)}</td>
+                        <td className="py-3 px-2 md:px-4 text-center">
+                          {average !== null ? (
+                            <span className={`text-sm md:text-base font-bold ${isModulePassing ? 'text-success' : 'text-destructive'}`}>
+                              {average.toFixed(2)}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">--</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-1 md:px-2 text-center hidden sm:table-cell">
+                          {average !== null ? (
+                            <span className={`text-xs md:text-sm font-semibold ${isModulePassing ? 'text-success' : 'text-muted-foreground'}`}>
+                              {earnedCredits}/{module.credits}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground text-xs">--</span>
+                          )}
+                        </td>
+                      </tr>
                     );
-
-                  return (
-                    <tr key={module.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                      <td className="py-3 px-2 md:px-4">
-                        <span className="font-medium text-foreground text-xs md:text-sm line-clamp-2">{module.name}</span>
-                        <span className="sm:hidden text-xs text-muted-foreground ml-1">({module.unitCode})</span>
-                      </td>
-                      <td className="py-3 px-1 md:px-2 text-center hidden sm:table-cell">
-                        <Badge variant="outline" className="text-xs">{module.unitCode}</Badge>
-                      </td>
-                      <td className="py-3 px-1 md:px-2 text-center text-xs md:text-sm">{module.coefficient}</td>
-                      <td className="py-3 px-1 md:px-2 text-center text-xs md:text-sm hidden md:table-cell">{module.credits}</td>
-                      <td className="py-3 px-1 md:px-2">{renderInput('td', module.tdWeight > 0)}</td>
-                      <td className="py-3 px-1 md:px-2">{renderInput('tp', module.tpWeight > 0)}</td>
-                      <td className="py-3 px-1 md:px-2">{renderInput('exam', module.examWeight > 0)}</td>
-                      <td className="py-3 px-2 md:px-4 text-center">
-                        {average !== null ? (
-                          <span className={`text-sm md:text-base font-bold ${isModulePassing ? 'text-success' : 'text-destructive'}`}>
-                            {average.toFixed(2)}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground text-xs">--</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-1 md:px-2 text-center hidden sm:table-cell">
-                        {average !== null ? (
-                          <span className={`text-xs md:text-sm font-semibold ${isModulePassing ? 'text-success' : 'text-muted-foreground'}`}>
-                            {earnedCredits}/{module.credits}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground text-xs">--</span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
+                  })
+                )}
               </tbody>
             </table>
           </div>
