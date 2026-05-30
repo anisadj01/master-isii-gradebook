@@ -55,7 +55,6 @@ export const semester1Units: UnitEnseignement[] = [
     code: 'UEM2',
     type: 'methodology',
     modules: [
-      { id: 'sad', name: "Systèmes d'Aide à la Décision", coefficient: 1, credits: 2, ...STD },
       { id: 'securite', name: 'Méthodologies de Sécurité', coefficient: 2, credits: 2, ...STD },
     ],
   },
@@ -100,6 +99,7 @@ export const semester2Units: UnitEnseignement[] = [
       { id: 'crypto', name: 'Cryptographie', coefficient: 2, credits: 3, ...STD },
       { id: 'meps', name: "Méthodes d'Évaluation des Performances des Systèmes", coefficient: 2, credits: 3, ...STD },
       { id: 'vision', name: 'Introduction à la Vision par Ordinateur', coefficient: 2, credits: 3, ...STD },
+      { id: 'sad', name: "Systèmes d'Aide à la Décision", coefficient: 1, credits: 2, ...STD },
     ],
   },
   {
