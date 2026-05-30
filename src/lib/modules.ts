@@ -3,7 +3,8 @@ export interface Module {
   name: string;
   coefficient: number;
   credits: number;
-  ccWeight: number;
+  tdWeight: number;
+  tpWeight: number;
   examWeight: number;
 }
 
@@ -15,6 +16,8 @@ export interface UnitEnseignement {
   modules: Module[];
 }
 
+const STD = { tdWeight: 0.2, tpWeight: 0.2, examWeight: 0.6 };
+
 export const semester1Units: UnitEnseignement[] = [
   {
     id: 'uef1',
@@ -22,22 +25,8 @@ export const semester1Units: UnitEnseignement[] = [
     code: 'UEF1',
     type: 'fundamental',
     modules: [
-      {
-        id: 'arch-log',
-        name: 'Architecture Logicielle',
-        coefficient: 3,
-        credits: 6,
-        ccWeight: 0.4,
-        examWeight: 0.6,
-      },
-      {
-        id: 'reseaux',
-        name: 'Réseaux Avancés',
-        coefficient: 2,
-        credits: 4,
-        ccWeight: 0.4,
-        examWeight: 0.6,
-      },
+      { id: 'arch-log', name: 'Architecture Logicielle', coefficient: 3, credits: 6, ...STD },
+      { id: 'reseaux', name: 'Réseaux Avancés', coefficient: 2, credits: 4, ...STD },
     ],
   },
   {
@@ -46,22 +35,8 @@ export const semester1Units: UnitEnseignement[] = [
     code: 'UEF2',
     type: 'fundamental',
     modules: [
-      {
-        id: 'ia-ml',
-        name: 'Intelligence Artificielle : Apprentissage Automatique',
-        coefficient: 3,
-        credits: 4,
-        ccWeight: 0.4,
-        examWeight: 0.6,
-      },
-      {
-        id: 'stats',
-        name: 'Analyse Statistique des Données',
-        coefficient: 2,
-        credits: 4,
-        ccWeight: 0.4,
-        examWeight: 0.6,
-      },
+      { id: 'ia-ml', name: 'Intelligence Artificielle : Apprentissage Automatique', coefficient: 3, credits: 4, ...STD },
+      { id: 'stats', name: 'Analyse Statistique des Données', coefficient: 2, credits: 4, ...STD },
     ],
   },
   {
@@ -70,22 +45,8 @@ export const semester1Units: UnitEnseignement[] = [
     code: 'UEM1',
     type: 'methodology',
     modules: [
-      {
-        id: 'multimedia',
-        name: 'Multimédia',
-        coefficient: 2,
-        credits: 2,
-        ccWeight: 0.4,
-        examWeight: 0.6,
-      },
-      {
-        id: 'optim',
-        name: 'Optimisation Combinatoire',
-        coefficient: 2,
-        credits: 3,
-        ccWeight: 0.4,
-        examWeight: 0.6,
-      },
+      { id: 'multimedia', name: 'Multimédia', coefficient: 2, credits: 2, ...STD },
+      { id: 'optim', name: 'Optimisation Combinatoire', coefficient: 2, credits: 3, ...STD },
     ],
   },
   {
@@ -94,22 +55,8 @@ export const semester1Units: UnitEnseignement[] = [
     code: 'UEM2',
     type: 'methodology',
     modules: [
-      {
-        id: 'sad',
-        name: "Systèmes d'Aide à la Décision",
-        coefficient: 1,
-        credits: 2,
-        ccWeight: 0.4,
-        examWeight: 0.6,
-      },
-      {
-        id: 'securite',
-        name: 'Méthodologies de Sécurité',
-        coefficient: 2,
-        credits: 2,
-        ccWeight: 0.4,
-        examWeight: 0.6,
-      },
+      { id: 'sad', name: "Systèmes d'Aide à la Décision", coefficient: 1, credits: 2, ...STD },
+      { id: 'securite', name: 'Méthodologies de Sécurité', coefficient: 2, credits: 2, ...STD },
     ],
   },
   {
@@ -118,14 +65,7 @@ export const semester1Units: UnitEnseignement[] = [
     code: 'UET1',
     type: 'transversal',
     modules: [
-      {
-        id: 'images',
-        name: "Introduction au Traitement d'Images",
-        coefficient: 2,
-        credits: 3,
-        ccWeight: 0.4,
-        examWeight: 0.6,
-      },
+      { id: 'images', name: "Introduction au Traitement d'Images", coefficient: 2, credits: 3, ...STD },
     ],
   },
 ];
@@ -137,22 +77,8 @@ export const semester2Units: UnitEnseignement[] = [
     code: 'UEF3',
     type: 'fundamental',
     modules: [
-      {
-        id: 'j2ee',
-        name: 'Architecture Web J2EE',
-        coefficient: 3,
-        credits: 5,
-        ccWeight: 0.4,
-        examWeight: 0.6,
-      },
-      {
-        id: 'bdd-avancees',
-        name: 'Bases de Données Avancées',
-        coefficient: 3,
-        credits: 4,
-        ccWeight: 0.4,
-        examWeight: 0.6,
-      },
+      { id: 'j2ee', name: 'Architecture Web J2EE', coefficient: 3, credits: 5, ...STD },
+      { id: 'bdd-avancees', name: 'Bases de Données Avancées', coefficient: 3, credits: 4, ...STD },
     ],
   },
   {
@@ -161,22 +87,8 @@ export const semester2Units: UnitEnseignement[] = [
     code: 'UEF4',
     type: 'fundamental',
     modules: [
-      {
-        id: 'data-mining',
-        name: 'Data Mining',
-        coefficient: 3,
-        credits: 6,
-        ccWeight: 0.4,
-        examWeight: 0.6,
-      },
-      {
-        id: 'entrepot',
-        name: 'Entrepôt de Données',
-        coefficient: 2,
-        credits: 3,
-        ccWeight: 0.4,
-        examWeight: 0.6,
-      },
+      { id: 'data-mining', name: 'Data Mining', coefficient: 3, credits: 6, ...STD },
+      { id: 'entrepot', name: 'Entrepôt de Données', coefficient: 2, credits: 3, ...STD },
     ],
   },
   {
@@ -185,30 +97,9 @@ export const semester2Units: UnitEnseignement[] = [
     code: 'UEM3',
     type: 'methodology',
     modules: [
-      {
-        id: 'crypto',
-        name: 'Cryptographie',
-        coefficient: 2,
-        credits: 3,
-        ccWeight: 0.4,
-        examWeight: 0.6,
-      },
-      {
-        id: 'meps',
-        name: "Méthodes d'Évaluation des Performances des Systèmes",
-        coefficient: 2,
-        credits: 3,
-        ccWeight: 0.4,
-        examWeight: 0.6,
-      },
-      {
-        id: 'vision',
-        name: 'Introduction à la Vision par Ordinateur',
-        coefficient: 2,
-        credits: 3,
-        ccWeight: 0.4,
-        examWeight: 0.6,
-      },
+      { id: 'crypto', name: 'Cryptographie', coefficient: 2, credits: 3, ...STD },
+      { id: 'meps', name: "Méthodes d'Évaluation des Performances des Systèmes", coefficient: 2, credits: 3, ...STD },
+      { id: 'vision', name: 'Introduction à la Vision par Ordinateur', coefficient: 2, credits: 3, ...STD },
     ],
   },
   {
@@ -217,14 +108,7 @@ export const semester2Units: UnitEnseignement[] = [
     code: 'UED1',
     type: 'discovery',
     modules: [
-      {
-        id: 'culture',
-        name: 'Culture d\'entreprise / Déontologie du travail',
-        coefficient: 1,
-        credits: 2,
-        ccWeight: 0.4,
-        examWeight: 0.6,
-      },
+      { id: 'culture', name: "Culture d'entreprise / Déontologie du travail", coefficient: 1, credits: 2, ...STD },
     ],
   },
   {
@@ -233,20 +117,14 @@ export const semester2Units: UnitEnseignement[] = [
     code: 'UET2',
     type: 'transversal',
     modules: [
-      {
-        id: 'anglais',
-        name: 'Anglais de base',
-        coefficient: 1,
-        credits: 1,
-        ccWeight: 1.0,
-        examWeight: 0,
-      },
+      { id: 'anglais', name: 'Anglais de base', coefficient: 1, credits: 1, tdWeight: 1, tpWeight: 0, examWeight: 0 },
     ],
   },
 ];
 
 export interface GradeInput {
-  cc: number | null;
+  td: number | null;
+  tp: number | null;
   exam: number | null;
 }
 
@@ -258,9 +136,14 @@ export function calculateModuleAverage(
   grades: GradeInput,
   module: Module
 ): number | null {
-  if (grades.cc === null) return null;
-  if (module.examWeight > 0 && grades.exam === null) return null;
-  return grades.cc * module.ccWeight + (grades.exam ?? 0) * module.examWeight;
+  if (module.tdWeight > 0 && (grades.td === null || grades.td === undefined)) return null;
+  if (module.tpWeight > 0 && (grades.tp === null || grades.tp === undefined)) return null;
+  if (module.examWeight > 0 && (grades.exam === null || grades.exam === undefined)) return null;
+  return (
+    (grades.td ?? 0) * module.tdWeight +
+    (grades.tp ?? 0) * module.tpWeight +
+    (grades.exam ?? 0) * module.examWeight
+  );
 }
 
 export function calculateSemesterAverage(
@@ -274,10 +157,8 @@ export function calculateSemesterAverage(
     for (const module of unit.modules) {
       const grades = allGrades[module.id];
       if (!grades) return null;
-
       const moduleAvg = calculateModuleAverage(grades, module);
       if (moduleAvg === null) return null;
-
       totalWeighted += moduleAvg * module.coefficient;
       totalCoeff += module.coefficient;
     }
@@ -288,13 +169,13 @@ export function calculateSemesterAverage(
 }
 
 export function getTotalCredits(units: UnitEnseignement[]): number {
-  return units.reduce((total, unit) => 
+  return units.reduce((total, unit) =>
     total + unit.modules.reduce((sum, mod) => sum + mod.credits, 0), 0
   );
 }
 
 export function getTotalCoefficients(units: UnitEnseignement[]): number {
-  return units.reduce((total, unit) => 
+  return units.reduce((total, unit) =>
     total + unit.modules.reduce((sum, mod) => sum + mod.coefficient, 0), 0
   );
 }
@@ -307,4 +188,20 @@ export function getAllModules(units: UnitEnseignement[]): Array<Module & { unitC
     }
   }
   return modules;
+}
+
+export function getAccumulatedCredits(
+  units: UnitEnseignement[],
+  allGrades: Grades
+): number {
+  let acc = 0;
+  for (const unit of units) {
+    for (const module of unit.modules) {
+      const g = allGrades[module.id];
+      if (!g) continue;
+      const avg = calculateModuleAverage(g, module);
+      if (avg !== null && avg >= 10) acc += module.credits;
+    }
+  }
+  return acc;
 }

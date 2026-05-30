@@ -1,17 +1,18 @@
 import { useState } from 'react';
-import { ArrowLeft, RotateCcw, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowLeft, RotateCcw, CheckCircle, XCircle, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { 
-  UnitEnseignement, 
-  Grades, 
-  calculateSemesterAverage, 
+import {
+  UnitEnseignement,
+  Grades,
+  calculateSemesterAverage,
   calculateModuleAverage,
-  getTotalCredits, 
+  getTotalCredits,
   getTotalCoefficients,
-  getAllModules 
+  getAllModules,
+  getAccumulatedCredits,
 } from '@/lib/modules';
 
 interface SemesterViewProps {
@@ -23,56 +24,40 @@ interface SemesterViewProps {
 const SemesterView = ({ title, units, onBack }: SemesterViewProps) => {
   const [grades, setGrades] = useState<Grades>({});
 
-  const handleGradeChange = (moduleId: string, field: 'cc' | 'exam', value: string) => {
+  const handleGradeChange = (moduleId: string, field: 'td' | 'tp' | 'exam', value: string) => {
     const numValue = value === '' ? null : parseFloat(value);
     if (numValue !== null && (isNaN(numValue) || numValue < 0 || numValue > 20)) return;
-    
+
     setGrades((prev) => ({
       ...prev,
       [moduleId]: {
-        ...prev[moduleId],
+        td: prev[moduleId]?.td ?? null,
+        tp: prev[moduleId]?.tp ?? null,
+        exam: prev[moduleId]?.exam ?? null,
         [field]: numValue,
       },
     }));
   };
 
-  const handleReset = () => {
-    setGrades({});
-  };
+  const handleReset = () => setGrades({});
 
   const semesterAverage = calculateSemesterAverage(units, grades);
   const isPassing = semesterAverage !== null && semesterAverage >= 10;
   const totalCredits = getTotalCredits(units);
   const totalCoeff = getTotalCoefficients(units);
+  const accumulatedCredits = getAccumulatedCredits(units, grades);
   const allModules = getAllModules(units);
-
-  // Count filled modules
-  const filledModules = allModules.filter(m => {
-    const g = grades[m.id];
-    if (!g) return false;
-    if (m.examWeight > 0) return g.cc !== null && g.exam !== null;
-    return g.cc !== null;
-  }).length;
 
   return (
     <div className="min-h-screen bg-background pb-12">
-      {/* Header */}
       <header className="gradient-primary text-primary-foreground py-4 md:py-6 px-4 mb-6 md:mb-8">
         <div className="container max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-3 md:mb-4">
-            <Button
-              variant="ghost"
-              onClick={onBack}
-              className="text-primary-foreground hover:bg-primary-foreground/10 text-sm md:text-base px-2 md:px-4"
-            >
+            <Button variant="ghost" onClick={onBack} className="text-primary-foreground hover:bg-primary-foreground/10 text-sm md:text-base px-2 md:px-4">
               <ArrowLeft className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden sm:inline">Retour</span>
             </Button>
-            <Button
-              variant="ghost"
-              onClick={handleReset}
-              className="text-primary-foreground hover:bg-primary-foreground/10 text-sm md:text-base px-2 md:px-4"
-            >
+            <Button variant="ghost" onClick={handleReset} className="text-primary-foreground hover:bg-primary-foreground/10 text-sm md:text-base px-2 md:px-4">
               <RotateCcw className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden sm:inline">Réinitialiser</span>
             </Button>
@@ -85,7 +70,6 @@ const SemesterView = ({ title, units, onBack }: SemesterViewProps) => {
       </header>
 
       <main className="container max-w-6xl mx-auto px-2 md:px-4">
-        {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-6 md:mb-8">
           <Card className="border-0 shadow-card">
             <CardContent className="p-3 md:p-4 text-center">
@@ -107,13 +91,15 @@ const SemesterView = ({ title, units, onBack }: SemesterViewProps) => {
           </Card>
           <Card className="border-0 shadow-card">
             <CardContent className="p-3 md:p-4 text-center">
-              <div className="text-xl md:text-2xl font-bold text-accent">{filledModules}/{allModules.length}</div>
-              <div className="text-xs text-muted-foreground">Saisis</div>
+              <div className="text-xl md:text-2xl font-bold text-accent flex items-center justify-center gap-1">
+                <Award className="w-4 h-4 md:w-5 md:h-5" />
+                {accumulatedCredits}/{totalCredits}
+              </div>
+              <div className="text-xs text-muted-foreground">Crédits acquis</div>
             </CardContent>
           </Card>
         </div>
 
-        {/* General Average Card with Admis/Ajourné */}
         <Card className={`mb-6 md:mb-8 border-0 shadow-card overflow-hidden ${
           semesterAverage !== null ? (isPassing ? 'ring-2 ring-success' : 'ring-2 ring-destructive') : ''
         }`}>
@@ -122,7 +108,7 @@ const SemesterView = ({ title, units, onBack }: SemesterViewProps) => {
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-3 md:gap-4">
                 <div className={`p-2 md:p-3 rounded-xl ${
-                  semesterAverage !== null 
+                  semesterAverage !== null
                     ? isPassing ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'
                     : 'bg-muted text-muted-foreground'
                 }`}>
@@ -134,21 +120,20 @@ const SemesterView = ({ title, units, onBack }: SemesterViewProps) => {
                 </div>
                 <div className="text-center sm:text-left">
                   <h2 className="text-base md:text-lg font-semibold text-foreground">Moyenne Générale</h2>
-                  {semesterAverage !== null && (
-                    <Badge 
-                      variant={isPassing ? "default" : "destructive"} 
+                  {semesterAverage !== null ? (
+                    <Badge
+                      variant={isPassing ? 'default' : 'destructive'}
                       className={`mt-1 text-sm md:text-base px-3 py-1 ${isPassing ? 'bg-success hover:bg-success/90' : ''}`}
                     >
                       {isPassing ? 'ADMIS' : 'AJOURNÉ'}
                     </Badge>
-                  )}
-                  {semesterAverage === null && (
+                  ) : (
                     <p className="text-xs md:text-sm text-muted-foreground">Saisissez toutes les notes</p>
                   )}
                 </div>
               </div>
               <div className={`text-3xl md:text-4xl font-bold ${
-                semesterAverage !== null 
+                semesterAverage !== null
                   ? isPassing ? 'text-success' : 'text-destructive'
                   : 'text-muted-foreground'
               }`}>
@@ -159,7 +144,6 @@ const SemesterView = ({ title, units, onBack }: SemesterViewProps) => {
           </CardContent>
         </Card>
 
-        {/* Unified Table - All Modules */}
         <Card className="border-0 shadow-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -169,17 +153,35 @@ const SemesterView = ({ title, units, onBack }: SemesterViewProps) => {
                   <th className="text-center py-3 px-1 md:px-2 font-semibold text-muted-foreground text-xs md:text-sm hidden sm:table-cell">UE</th>
                   <th className="text-center py-3 px-1 md:px-2 font-semibold text-muted-foreground text-xs md:text-sm">Coef</th>
                   <th className="text-center py-3 px-1 md:px-2 font-semibold text-muted-foreground text-xs md:text-sm hidden md:table-cell">Créd</th>
-                  <th className="text-center py-3 px-1 md:px-2 font-semibold text-muted-foreground text-xs md:text-sm">CC</th>
+                  <th className="text-center py-3 px-1 md:px-2 font-semibold text-muted-foreground text-xs md:text-sm">TD</th>
+                  <th className="text-center py-3 px-1 md:px-2 font-semibold text-muted-foreground text-xs md:text-sm">TP</th>
                   <th className="text-center py-3 px-1 md:px-2 font-semibold text-muted-foreground text-xs md:text-sm">Exam</th>
                   <th className="text-center py-3 px-2 md:px-4 font-semibold text-muted-foreground text-xs md:text-sm">Moy</th>
+                  <th className="text-center py-3 px-1 md:px-2 font-semibold text-muted-foreground text-xs md:text-sm hidden sm:table-cell">Acq</th>
                 </tr>
               </thead>
               <tbody>
                 {allModules.map((module) => {
-                  const moduleGrades = grades[module.id] || { cc: null, exam: null };
+                  const moduleGrades = grades[module.id] || { td: null, tp: null, exam: null };
                   const average = calculateModuleAverage(moduleGrades, module);
                   const isModulePassing = average !== null && average >= 10;
-                  const isExamOnly = module.examWeight === 0;
+                  const earnedCredits = isModulePassing ? module.credits : 0;
+
+                  const renderInput = (field: 'td' | 'tp' | 'exam', enabled: boolean) =>
+                    enabled ? (
+                      <Input
+                        type="number"
+                        min={0}
+                        max={20}
+                        step={0.25}
+                        value={moduleGrades[field] ?? ''}
+                        onChange={(e) => handleGradeChange(module.id, field, e.target.value)}
+                        placeholder="--"
+                        className="w-14 md:w-16 text-center text-xs md:text-sm h-8 mx-auto"
+                      />
+                    ) : (
+                      <span className="text-muted-foreground text-xs">N/A</span>
+                    );
 
                   return (
                     <tr key={module.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
@@ -192,38 +194,22 @@ const SemesterView = ({ title, units, onBack }: SemesterViewProps) => {
                       </td>
                       <td className="py-3 px-1 md:px-2 text-center text-xs md:text-sm">{module.coefficient}</td>
                       <td className="py-3 px-1 md:px-2 text-center text-xs md:text-sm hidden md:table-cell">{module.credits}</td>
-                      <td className="py-3 px-1 md:px-2">
-                        <Input
-                          type="number"
-                          min={0}
-                          max={20}
-                          step={0.25}
-                          value={moduleGrades.cc ?? ''}
-                          onChange={(e) => handleGradeChange(module.id, 'cc', e.target.value)}
-                          placeholder="--"
-                          className="w-14 md:w-16 text-center text-xs md:text-sm h-8 mx-auto"
-                        />
-                      </td>
-                      <td className="py-3 px-1 md:px-2">
-                        {isExamOnly ? (
-                          <span className="text-muted-foreground text-xs">N/A</span>
-                        ) : (
-                          <Input
-                            type="number"
-                            min={0}
-                            max={20}
-                            step={0.25}
-                            value={moduleGrades.exam ?? ''}
-                            onChange={(e) => handleGradeChange(module.id, 'exam', e.target.value)}
-                            placeholder="--"
-                            className="w-14 md:w-16 text-center text-xs md:text-sm h-8 mx-auto"
-                          />
-                        )}
-                      </td>
+                      <td className="py-3 px-1 md:px-2">{renderInput('td', module.tdWeight > 0)}</td>
+                      <td className="py-3 px-1 md:px-2">{renderInput('tp', module.tpWeight > 0)}</td>
+                      <td className="py-3 px-1 md:px-2">{renderInput('exam', module.examWeight > 0)}</td>
                       <td className="py-3 px-2 md:px-4 text-center">
                         {average !== null ? (
                           <span className={`text-sm md:text-base font-bold ${isModulePassing ? 'text-success' : 'text-destructive'}`}>
                             {average.toFixed(2)}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">--</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-1 md:px-2 text-center hidden sm:table-cell">
+                        {average !== null ? (
+                          <span className={`text-xs md:text-sm font-semibold ${isModulePassing ? 'text-success' : 'text-muted-foreground'}`}>
+                            {earnedCredits}/{module.credits}
                           </span>
                         ) : (
                           <span className="text-muted-foreground text-xs">--</span>
