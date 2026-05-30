@@ -55,7 +55,6 @@ export const semester1Units: UnitEnseignement[] = [
     code: 'UEM2',
     type: 'methodology',
     modules: [
-      { id: 'sad', name: "Systèmes d'Aide à la Décision", coefficient: 1, credits: 2, ...STD },
       { id: 'securite', name: 'Méthodologies de Sécurité', coefficient: 2, credits: 2, ...STD },
     ],
   },
