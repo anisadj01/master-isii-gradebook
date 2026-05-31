@@ -156,9 +156,9 @@ export function calculateSemesterAverage(
   for (const unit of units) {
     for (const module of unit.modules) {
       const grades = allGrades[module.id];
-      if (!grades) return null;
+      if (!grades) continue;
       const moduleAvg = calculateModuleAverage(grades, module);
-      if (moduleAvg === null) return null;
+      if (moduleAvg === null) continue;
       totalWeighted += moduleAvg * module.coefficient;
       totalCoeff += module.coefficient;
     }
