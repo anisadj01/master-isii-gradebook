@@ -184,7 +184,8 @@ const SemesterView = ({ title, units, onBack }: SemesterViewProps) => {
                 {units.map((unit, unitIndex) =>
                   unit.modules.map((module, moduleIndex) => {
                     const moduleGrades = grades[module.id] || { td: null, tp: null, exam: null };
-                    const average = calculateModuleAverage(moduleGrades, module);
+                    const hasAnyGrade = moduleGrades.td !== null || moduleGrades.tp !== null || moduleGrades.exam !== null;
+                    const average = hasAnyGrade ? calculateModuleAverage(moduleGrades, module) : null;
                     const isModulePassing = average !== null && average >= 10;
                     const earnedCredits = isModulePassing ? module.credits : 0;
                     const isLastInUnit = moduleIndex === unit.modules.length - 1;

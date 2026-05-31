@@ -133,16 +133,13 @@ export interface Grades {
 }
 
 export function calculateModuleAverage(
-  grades: GradeInput,
+  grades: GradeInput | undefined,
   module: Module
-): number | null {
-  if (module.tdWeight > 0 && (grades.td === null || grades.td === undefined)) return null;
-  if (module.tpWeight > 0 && (grades.tp === null || grades.tp === undefined)) return null;
-  if (module.examWeight > 0 && (grades.exam === null || grades.exam === undefined)) return null;
+): number {
   return (
-    (grades.td ?? 0) * module.tdWeight +
-    (grades.tp ?? 0) * module.tpWeight +
-    (grades.exam ?? 0) * module.examWeight
+    ((grades?.td ?? 0) as number) * module.tdWeight +
+    ((grades?.tp ?? 0) as number) * module.tpWeight +
+    ((grades?.exam ?? 0) as number) * module.examWeight
   );
 }
 
@@ -155,10 +152,7 @@ export function calculateSemesterAverage(
 
   for (const unit of units) {
     for (const module of unit.modules) {
-      const grades = allGrades[module.id];
-      if (!grades) continue;
-      const moduleAvg = calculateModuleAverage(grades, module);
-      if (moduleAvg === null) continue;
+      const moduleAvg = calculateModuleAverage(allGrades[module.id], module);
       totalWeighted += moduleAvg * module.coefficient;
       totalCoeff += module.coefficient;
     }
