@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowLeft, RotateCcw, CheckCircle, XCircle, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -22,7 +22,24 @@ interface SemesterViewProps {
 }
 
 const SemesterView = ({ title, units, onBack }: SemesterViewProps) => {
-  const [grades, setGrades] = useState<Grades>({});
+  const storageKey = `grades:${title}`;
+  const [grades, setGrades] = useState<Grades>(() => {
+    if (typeof window === 'undefined') return {};
+    try {
+      const raw = localStorage.getItem(storageKey);
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(grades));
+    } catch {
+      // ignore
+    }
+  }, [grades, storageKey]);
 
   const handleGradeChange = (moduleId: string, field: 'td' | 'tp' | 'exam', value: string) => {
     const numValue = value === '' ? null : parseFloat(value);
@@ -39,7 +56,10 @@ const SemesterView = ({ title, units, onBack }: SemesterViewProps) => {
     }));
   };
 
-  const handleReset = () => setGrades({});
+  const handleReset = () => {
+    setGrades({});
+    try { localStorage.removeItem(storageKey); } catch {}
+  };
 
   const semesterAverage = calculateSemesterAverage(units, grades);
   const isPassing = semesterAverage !== null && semesterAverage >= 10;
@@ -183,7 +203,7 @@ const SemesterView = ({ title, units, onBack }: SemesterViewProps) => {
                           className="w-14 md:w-16 text-center text-xs md:text-sm h-8 mx-auto"
                         />
                       ) : (
-                        <span className="text-muted-foreground text-xs">N/A</span>
+                        <span className="text-muted-foreground/40 text-xs">—</span>
                       );
 
                     return (
@@ -194,14 +214,14 @@ const SemesterView = ({ title, units, onBack }: SemesterViewProps) => {
                         }`}
                       >
                         <td className="py-3 px-2 md:px-4">
-                          <span className="font-medium text-foreground text-xs md:text-sm line-clamp-2">{module.name}</span>
-                          <span className="sm:hidden text-xs text-muted-foreground ml-1">({unit.code})</span>
+                          <span className="font-medium text-foreground text-xs md:text-sm block">{module.name}</span>
+                          <span className="sm:hidden text-xs text-muted-foreground">({unit.code}) · {module.credits} créd.</span>
                         </td>
                         <td className="py-3 px-1 md:px-2 text-center hidden sm:table-cell">
                           <Badge variant="outline" className="text-xs">{unit.code}</Badge>
                         </td>
                         <td className="py-3 px-1 md:px-2 text-center text-xs md:text-sm">{module.coefficient}</td>
-                        <td className="py-3 px-1 md:px-2 text-center text-xs md:text-sm hidden md:table-cell">{module.credits}</td>
+                        <td className="py-3 px-1 md:px-2 text-center text-xs md:text-sm hidden md:table-cell font-semibold text-accent">{module.credits}</td>
                         <td className="py-3 px-1 md:px-2">{renderInput('td', module.tdWeight > 0)}</td>
                         <td className="py-3 px-1 md:px-2">{renderInput('tp', module.tpWeight > 0)}</td>
                         <td className="py-3 px-1 md:px-2">{renderInput('exam', module.examWeight > 0)}</td>
