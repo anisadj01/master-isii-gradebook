@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, RotateCcw, CheckCircle, XCircle, Award, ScanLine, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowLeft, RotateCcw, CheckCircle, XCircle, Award, ScanLine, Loader2, ImagePlus } from 'lucide-react';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
