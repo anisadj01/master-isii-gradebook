@@ -46,13 +46,23 @@ Deno.serve(async (req) => {
 Voici la liste des modules de ce semestre avec leur id et les champs autorisés :
 ${moduleList}
 
+Vocabulaire arabe IMPORTANT :
+- "التقييم المستمر" = Contrôle continu (CC). Chaque ligne porte une étiquette "TD" ou "TP" → mappe la note vers td OU tp en conséquence.
+- "علامات الامتحانات" ou "الامتحان" = note d'examen (exam).
+- "السداسي 1" / "السداسي 2" = Semestre 1 / Semestre 2.
+- "دورة عادية" = session normale (à utiliser). "دورة إستدراكية" = session de rattrapage (IGNORER complètement).
+- "لا توجد" = aucune note (OMETS le champ).
+- "المقياس" = module, "العلامة" = note, "المعامل" = coefficient.
+
 Règles STRICTES :
-- Retourne UNIQUEMENT les modules que tu reconnais dans l'image.
-- Associe chaque ligne de l'image au module le plus proche par le nom (tolère les variations français/arabe, abréviations, fautes).
-- Pour chaque module, ne remplis que les champs autorisés listés ci-dessus (td, tp, exam). Si un champ n'est pas autorisé, OMETS-LE complètement.
-- Les notes sont des nombres entre 0 et 20 (accepte le format 12.5, 12,5, ١٢٫٥).
-- Si une note n'est pas visible/lisible pour un champ autorisé, OMETS-LE.
-- Ne devine jamais. Si tu n'es pas sûr, omets.`;
+- Ignore l'onglet "دورة إستدراكية".
+- Si une ligne montre l'étiquette "TD" à côté de la note → c'est td. "TP" → c'est tp. Page "علامات الامتحانات" → c'est exam.
+- Retourne UNIQUEMENT les modules reconnus (associe par le nom, tolère variations FR/AR, abréviations, troncatures "...", fautes).
+- Pour chaque module, ne remplis que les champs autorisés. Si un champ n'est pas autorisé, OMETS-LE.
+- Notes = nombres entre 0 et 20 (accepte 12.5, 12,5, ١٢٫٥). Convertis chiffres arabes → chiffres latins.
+- Si verrouillé/illisible/"لا توجد" → OMETS le champ.
+- Ne devine jamais.`;
+
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
