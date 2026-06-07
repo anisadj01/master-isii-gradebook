@@ -341,7 +341,52 @@ const SemesterView = ({ title, units, onBack }: SemesterViewProps) => {
           </div>
         </Card>
       </main>
+
+      <Dialog open={scanDialogOpen} onOpenChange={setScanDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Scanner les notes</DialogTitle>
+            <DialogDescription>
+              Choisissez depuis votre galerie deux captures : la page « التقييم المستمر » (CC) et la page « علامات الامتحانات » (Examen). Vous pouvez n'en envoyer qu'une.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <label className="block">
+              <span className="text-sm font-medium text-foreground">📘 Image 1 — Contrôle Continu (CC / TD-TP)</span>
+              <input
+                type="file"
+                accept="image/*"
+                className="mt-1 block w-full text-sm file:mr-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-primary file:text-primary-foreground file:cursor-pointer"
+                onChange={(e) => setCcFile(e.target.files?.[0] ?? null)}
+              />
+              {ccFile && <span className="text-xs text-muted-foreground mt-1 block">✓ {ccFile.name}</span>}
+            </label>
+
+            <label className="block">
+              <span className="text-sm font-medium text-foreground">📕 Image 2 — Examen</span>
+              <input
+                type="file"
+                accept="image/*"
+                className="mt-1 block w-full text-sm file:mr-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-primary file:text-primary-foreground file:cursor-pointer"
+                onChange={(e) => setExamFile(e.target.files?.[0] ?? null)}
+              />
+              {examFile && <span className="text-xs text-muted-foreground mt-1 block">✓ {examFile.name}</span>}
+            </label>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setScanDialogOpen(false)} disabled={scanning}>
+              Annuler
+            </Button>
+            <Button onClick={handleScanSubmit} disabled={scanning || (!ccFile && !examFile)}>
+              {scanning ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Analyse…</> : <><ImagePlus className="w-4 h-4 mr-2" />Analyser</>}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 };
 
