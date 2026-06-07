@@ -64,35 +64,49 @@ const SemesterView = ({ title, units, onBack }: SemesterViewProps) => {
     try { localStorage.removeItem(storageKey); } catch {}
   };
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [scanning, setScanning] = useState(false);
+  const [scanDialogOpen, setScanDialogOpen] = useState(false);
+  const [ccFile, setCcFile] = useState<File | null>(null);
+  const [examFile, setExamFile] = useState<File | null>(null);
 
-  const handleScanClick = () => fileInputRef.current?.click();
+  const openScanDialog = () => {
+    setCcFile(null);
+    setExamFile(null);
+    setScanDialogOpen(true);
+  };
 
-  const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = '';
-    if (!file) return;
+  const fileToDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result as string);
+      r.onerror = () => reject(r.error);
+      r.readAsDataURL(file);
+    });
 
+  const handleScanSubmit = async () => {
+    if (!ccFile && !examFile) {
+      toast({ title: 'Aucune image', description: 'Sélectionnez au moins une image.', variant: 'destructive' });
+      return;
+    }
     setScanning(true);
     try {
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const r = new FileReader();
-        r.onload = () => resolve(r.result as string);
-        r.onerror = () => reject(r.error);
-        r.readAsDataURL(file);
-      });
+      const moduleInfos = units.flatMap((u) =>
+        u.modules.map((m) => ({
+          id: m.id,
+          name: m.name,
+          unit: u.code,
+          hasTd: m.tdWeight > 0,
+          hasTp: m.tpWeight > 0,
+          hasExam: m.examWeight > 0,
+        })),
+      );
 
-      const moduleInfos = allModules.map((m) => ({
-        id: m.id,
-        name: m.name,
-        hasTd: m.tdWeight > 0,
-        hasTp: m.tpWeight > 0,
-        hasExam: m.examWeight > 0,
-      }));
+      const images: Array<{ kind: 'cc' | 'exam'; data: string }> = [];
+      if (ccFile) images.push({ kind: 'cc', data: await fileToDataUrl(ccFile) });
+      if (examFile) images.push({ kind: 'exam', data: await fileToDataUrl(examFile) });
 
       const { data, error } = await supabase.functions.invoke('scan-grades', {
-        body: { image: base64, modules: moduleInfos },
+        body: { images, modules: moduleInfos },
       });
 
       if (error) throw error;
@@ -100,7 +114,7 @@ const SemesterView = ({ title, units, onBack }: SemesterViewProps) => {
 
       const extracted: Array<{ moduleId: string; td?: number; tp?: number; exam?: number }> = data?.grades || [];
       if (extracted.length === 0) {
-        toast({ title: 'Aucune note détectée', description: "Essayez une image plus nette.", variant: 'destructive' });
+        toast({ title: 'Aucune note détectée', description: 'Essayez des images plus nettes.', variant: 'destructive' });
         return;
       }
 
@@ -117,6 +131,7 @@ const SemesterView = ({ title, units, onBack }: SemesterViewProps) => {
       });
 
       toast({ title: 'Notes importées', description: `${extracted.length} module(s) remplis.` });
+      setScanDialogOpen(false);
     } catch (err: any) {
       toast({ title: 'Erreur de scan', description: err?.message || String(err), variant: 'destructive' });
     } finally {
