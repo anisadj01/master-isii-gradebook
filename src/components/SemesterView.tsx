@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, RotateCcw, CheckCircle, XCircle, Award, ScanLine, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowLeft, RotateCcw, CheckCircle, XCircle, Award, ScanLine, Loader2, ImagePlus } from 'lucide-react';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -64,35 +65,49 @@ const SemesterView = ({ title, units, onBack }: SemesterViewProps) => {
     try { localStorage.removeItem(storageKey); } catch {}
   };
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [scanning, setScanning] = useState(false);
+  const [scanDialogOpen, setScanDialogOpen] = useState(false);
+  const [ccFile, setCcFile] = useState<File | null>(null);
+  const [examFile, setExamFile] = useState<File | null>(null);
 
-  const handleScanClick = () => fileInputRef.current?.click();
+  const openScanDialog = () => {
+    setCcFile(null);
+    setExamFile(null);
+    setScanDialogOpen(true);
+  };
 
-  const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = '';
-    if (!file) return;
+  const fileToDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result as string);
+      r.onerror = () => reject(r.error);
+      r.readAsDataURL(file);
+    });
 
+  const handleScanSubmit = async () => {
+    if (!ccFile && !examFile) {
+      toast({ title: 'Aucune image', description: 'Sélectionnez au moins une image.', variant: 'destructive' });
+      return;
+    }
     setScanning(true);
     try {
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const r = new FileReader();
-        r.onload = () => resolve(r.result as string);
-        r.onerror = () => reject(r.error);
-        r.readAsDataURL(file);
-      });
+      const moduleInfos = units.flatMap((u) =>
+        u.modules.map((m) => ({
+          id: m.id,
+          name: m.name,
+          unit: u.code,
+          hasTd: m.tdWeight > 0,
+          hasTp: m.tpWeight > 0,
+          hasExam: m.examWeight > 0,
+        })),
+      );
 
-      const moduleInfos = allModules.map((m) => ({
-        id: m.id,
-        name: m.name,
-        hasTd: m.tdWeight > 0,
-        hasTp: m.tpWeight > 0,
-        hasExam: m.examWeight > 0,
-      }));
+      const images: Array<{ kind: 'cc' | 'exam'; data: string }> = [];
+      if (ccFile) images.push({ kind: 'cc', data: await fileToDataUrl(ccFile) });
+      if (examFile) images.push({ kind: 'exam', data: await fileToDataUrl(examFile) });
 
       const { data, error } = await supabase.functions.invoke('scan-grades', {
-        body: { image: base64, modules: moduleInfos },
+        body: { images, modules: moduleInfos },
       });
 
       if (error) throw error;
@@ -100,7 +115,7 @@ const SemesterView = ({ title, units, onBack }: SemesterViewProps) => {
 
       const extracted: Array<{ moduleId: string; td?: number; tp?: number; exam?: number }> = data?.grades || [];
       if (extracted.length === 0) {
-        toast({ title: 'Aucune note détectée', description: "Essayez une image plus nette.", variant: 'destructive' });
+        toast({ title: 'Aucune note détectée', description: 'Essayez des images plus nettes.', variant: 'destructive' });
         return;
       }
 
@@ -117,6 +132,7 @@ const SemesterView = ({ title, units, onBack }: SemesterViewProps) => {
       });
 
       toast({ title: 'Notes importées', description: `${extracted.length} module(s) remplis.` });
+      setScanDialogOpen(false);
     } catch (err: any) {
       toast({ title: 'Erreur de scan', description: err?.message || String(err), variant: 'destructive' });
     } finally {
@@ -143,7 +159,7 @@ const SemesterView = ({ title, units, onBack }: SemesterViewProps) => {
               <span className="hidden sm:inline">Retour</span>
             </Button>
             <div className="flex items-center gap-1">
-              <Button variant="ghost" onClick={handleScanClick} disabled={scanning} className="text-primary-foreground hover:bg-primary-foreground/10 text-sm md:text-base px-2 md:px-4">
+              <Button variant="ghost" onClick={openScanDialog} disabled={scanning} className="text-primary-foreground hover:bg-primary-foreground/10 text-sm md:text-base px-2 md:px-4">
                 {scanning ? <Loader2 className="w-4 h-4 mr-1 md:mr-2 animate-spin" /> : <ScanLine className="w-4 h-4 mr-1 md:mr-2" />}
                 <span className="hidden sm:inline">{scanning ? 'Scan…' : 'Scanner'}</span>
               </Button>
@@ -152,14 +168,6 @@ const SemesterView = ({ title, units, onBack }: SemesterViewProps) => {
                 <span className="hidden sm:inline">Réinitialiser</span>
               </Button>
             </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="hidden"
-              onChange={handleFileSelected}
-            />
 
           </div>
           <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">{title}</h1>
@@ -333,7 +341,52 @@ const SemesterView = ({ title, units, onBack }: SemesterViewProps) => {
           </div>
         </Card>
       </main>
+
+      <Dialog open={scanDialogOpen} onOpenChange={setScanDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Scanner les notes</DialogTitle>
+            <DialogDescription>
+              Choisissez depuis votre galerie deux captures : la page « التقييم المستمر » (CC) et la page « علامات الامتحانات » (Examen). Vous pouvez n'en envoyer qu'une.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <label className="block">
+              <span className="text-sm font-medium text-foreground">📘 Image 1 — Contrôle Continu (CC / TD-TP)</span>
+              <input
+                type="file"
+                accept="image/*"
+                className="mt-1 block w-full text-sm file:mr-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-primary file:text-primary-foreground file:cursor-pointer"
+                onChange={(e) => setCcFile(e.target.files?.[0] ?? null)}
+              />
+              {ccFile && <span className="text-xs text-muted-foreground mt-1 block">✓ {ccFile.name}</span>}
+            </label>
+
+            <label className="block">
+              <span className="text-sm font-medium text-foreground">📕 Image 2 — Examen</span>
+              <input
+                type="file"
+                accept="image/*"
+                className="mt-1 block w-full text-sm file:mr-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-primary file:text-primary-foreground file:cursor-pointer"
+                onChange={(e) => setExamFile(e.target.files?.[0] ?? null)}
+              />
+              {examFile && <span className="text-xs text-muted-foreground mt-1 block">✓ {examFile.name}</span>}
+            </label>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setScanDialogOpen(false)} disabled={scanning}>
+              Annuler
+            </Button>
+            <Button onClick={handleScanSubmit} disabled={scanning || (!ccFile && !examFile)}>
+              {scanning ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Analyse…</> : <><ImagePlus className="w-4 h-4 mr-2" />Analyser</>}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+
   );
 };
 
