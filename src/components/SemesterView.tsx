@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
-import { ArrowLeft, RotateCcw, CheckCircle, XCircle, Award } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { ArrowLeft, RotateCcw, CheckCircle, XCircle, Award, ScanLine, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import {
   UnitEnseignement,
   Grades,
@@ -14,6 +16,7 @@ import {
   getAllModules,
   getAccumulatedCredits,
 } from '@/lib/modules';
+
 
 interface SemesterViewProps {
   title: string;
