@@ -3,9 +3,15 @@ import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 interface ModuleInfo {
   id: string;
   name: string;
+  unit?: string;
   hasTd: boolean;
   hasTp: boolean;
   hasExam: boolean;
+}
+
+interface InputImage {
+  kind: 'cc' | 'exam';
+  data: string; // data URL
 }
 
 Deno.serve(async (req) => {
@@ -14,10 +20,17 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { image, modules } = await req.json() as { image: string; modules: ModuleInfo[] };
+    const body = await req.json();
+    const modules: ModuleInfo[] = body.modules || [];
 
-    if (!image || !Array.isArray(modules)) {
-      return new Response(JSON.stringify({ error: 'image and modules are required' }), {
+    // Accept either new `images: [{kind,data}]` or legacy `image: dataUrl`.
+    let images: InputImage[] = Array.isArray(body.images) ? body.images : [];
+    if (images.length === 0 && typeof body.image === 'string') {
+      images = [{ kind: 'cc', data: body.image }];
+    }
+
+    if (images.length === 0 || !Array.isArray(modules)) {
+      return new Response(JSON.stringify({ error: 'images and modules are required' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -37,32 +50,44 @@ Deno.serve(async (req) => {
         if (m.hasTd) fields.push('td');
         if (m.hasTp) fields.push('tp');
         if (m.hasExam) fields.push('exam');
-        return `- id="${m.id}" | nom="${m.name}" | champs autorisés: ${fields.join(', ')}`;
+        return `- id="${m.id}" | UE=${m.unit ?? '?'} | nom="${m.name}" | champs autorisés: ${fields.join(', ') || '(aucun)'}`;
       })
       .join('\n');
 
-    const systemPrompt = `Tu es un assistant qui extrait des notes universitaires depuis une image (capture d'écran d'un relevé de notes, en français ou en arabe).
+    const imageLabels = images.map((i) => i.kind).join(' + ');
 
-Voici la liste des modules de ce semestre avec leur id et les champs autorisés :
+    const systemPrompt = `Tu es un assistant qui extrait des notes universitaires depuis une ou plusieurs captures d'écran (FR ou AR) de l'application universitaire (Univ Alger 1, Master ISII).
+
+Modules de ce semestre (avec leur UE pour désambiguïser les doublons de nom) :
 ${moduleList}
 
-Vocabulaire arabe IMPORTANT :
-- "التقييم المستمر" = Contrôle continu (CC). Chaque ligne porte une étiquette "TD" ou "TP" → mappe la note vers td OU tp en conséquence.
-- "علامات الامتحانات" ou "الامتحان" = note d'examen (exam).
-- "السداسي 1" / "السداسي 2" = Semestre 1 / Semestre 2.
-- "دورة عادية" = session normale (à utiliser). "دورة إستدراكية" = session de rattrapage (IGNORER complètement).
-- "لا توجد" = aucune note (OMETS le champ).
+Tu vas recevoir ${images.length} image(s), étiquetées dans l'ordre : ${imageLabels}.
+- Image étiquetée "cc" = page "التقييم المستمر" → les notes sont des TD ou TP selon l'étiquette "TD"/"TP" visible à côté de chaque module.
+- Image étiquetée "exam" = page "علامات الامتحانات" → toutes les notes vont dans le champ exam.
+
+Vocabulaire arabe :
+- "التقييم المستمر" = contrôle continu ; "علامات الامتحانات" = examens.
+- "السداسي 1" / "السداسي 2" = Semestre 1 / 2.
+- "دورة عادية" = session normale (utiliser). "دورة إستدراكية" = rattrapage (IGNORER).
+- "لا توجد" = pas de note → laisser vide.
 - "المقياس" = module, "العلامة" = note, "المعامل" = coefficient.
 
 Règles STRICTES :
-- Ignore l'onglet "دورة إستدراكية".
-- Si une ligne montre l'étiquette "TD" à côté de la note → c'est td. "TP" → c'est tp. Page "علامات الامتحانات" → c'est exam.
-- Retourne UNIQUEMENT les modules reconnus (associe par le nom, tolère variations FR/AR, abréviations, troncatures "...", fautes).
-- Pour chaque module, ne remplis que les champs autorisés. Si un champ n'est pas autorisé, OMETS-LE.
-- Notes = nombres entre 0 et 20 (accepte 12.5, 12,5, ١٢٫٥). Convertis chiffres arabes → chiffres latins.
-- Si verrouillé/illisible/"لا توجد" → OMETS le champ.
-- Ne devine jamais.`;
+- Ignore complètement l'onglet "دورة إستدراكية".
+- Si la note est verrouillée sans valeur, marquée "لا توجد", absente ou illisible → OMETS le champ (ne devine JAMAIS, ne mets pas 0).
+- Sur la page CC, regarde TOUJOURS l'étiquette "TD" ou "TP" à côté de la note pour décider du champ. N'invente pas un champ td si l'étiquette dit TP, et inversement.
+- Sur la page Examen, la note va toujours dans exam.
+- Pour chaque module, ne remplis QUE les champs autorisés listés ci-dessus. Si un module n'a pas de td/tp/exam autorisé, n'écris pas ce champ.
+- Désambiguïse les noms en double (ex: "Cryptographie") en utilisant le contexte (UE, ordre dans la page). Si tu n'es pas sûr du module exact, OMETS-LE.
+- Notes = nombres 0–20. Accepte "12.5", "12,5", "١٢٫٥". Convertis les chiffres arabes en chiffres latins.
 
+Réponds en appelant l'outil fill_grades avec uniquement les modules et champs sûrs.`;
+
+    const userContent: any[] = [{ type: 'text', text: `Voici ${images.length} image(s) dans l'ordre : ${imageLabels}. Extrais les notes.` }];
+    for (const img of images) {
+      userContent.push({ type: 'text', text: `--- Image (${img.kind}) ---` });
+      userContent.push({ type: 'image_url', image_url: { url: img.data } });
+    }
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -71,23 +96,17 @@ Règles STRICTES :
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-pro',
         messages: [
           { role: 'system', content: systemPrompt },
-          {
-            role: 'user',
-            content: [
-              { type: 'text', text: 'Extrais les notes de cette image.' },
-              { type: 'image_url', image_url: { url: image } },
-            ],
-          },
+          { role: 'user', content: userContent },
         ],
         tools: [
           {
             type: 'function',
             function: {
               name: 'fill_grades',
-              description: 'Remplit les notes extraites depuis l\'image',
+              description: "Remplit les notes extraites depuis les images.",
               parameters: {
                 type: 'object',
                 properties: {
@@ -96,7 +115,7 @@ Règles STRICTES :
                     items: {
                       type: 'object',
                       properties: {
-                        moduleId: { type: 'string', description: "id exact du module dans la liste" },
+                        moduleId: { type: 'string', description: 'id exact du module' },
                         td: { type: 'number', minimum: 0, maximum: 20 },
                         tp: { type: 'number', minimum: 0, maximum: 20 },
                         exam: { type: 'number', minimum: 0, maximum: 20 },
@@ -123,7 +142,7 @@ Règles STRICTES :
       });
     }
     if (response.status === 402) {
-      return new Response(JSON.stringify({ error: 'Crédits IA épuisés. Ajoutez du crédit dans Cloud.' }), {
+      return new Response(JSON.stringify({ error: 'Crédits IA épuisés.' }), {
         status: 402,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -140,7 +159,6 @@ Règles STRICTES :
     const toolCall = data?.choices?.[0]?.message?.tool_calls?.[0];
     const args = toolCall?.function?.arguments ? JSON.parse(toolCall.function.arguments) : { grades: [] };
 
-    // Filter to only allowed fields per module
     const modMap = new Map(modules.map((m) => [m.id, m]));
     const cleaned = (args.grades || [])
       .map((g: any) => {
@@ -150,6 +168,7 @@ Règles STRICTES :
         if (m.hasTd && typeof g.td === 'number') out.td = g.td;
         if (m.hasTp && typeof g.tp === 'number') out.tp = g.tp;
         if (m.hasExam && typeof g.exam === 'number') out.exam = g.exam;
+        if (Object.keys(out).length === 1) return null; // nothing useful
         return out;
       })
       .filter(Boolean);
