@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
-import { ArrowLeft, RotateCcw, CheckCircle, XCircle, Award } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { ArrowLeft, RotateCcw, CheckCircle, XCircle, Award, ScanLine, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import {
   UnitEnseignement,
   Grades,
@@ -14,6 +16,7 @@ import {
   getAllModules,
   getAccumulatedCredits,
 } from '@/lib/modules';
+
 
 interface SemesterViewProps {
   title: string;
@@ -61,6 +64,68 @@ const SemesterView = ({ title, units, onBack }: SemesterViewProps) => {
     try { localStorage.removeItem(storageKey); } catch {}
   };
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [scanning, setScanning] = useState(false);
+
+  const handleScanClick = () => fileInputRef.current?.click();
+
+  const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    setScanning(true);
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result as string);
+        r.onerror = () => reject(r.error);
+        r.readAsDataURL(file);
+      });
+
+      const moduleInfos = allModules.map((m) => ({
+        id: m.id,
+        name: m.name,
+        hasTd: m.tdWeight > 0,
+        hasTp: m.tpWeight > 0,
+        hasExam: m.examWeight > 0,
+      }));
+
+      const { data, error } = await supabase.functions.invoke('scan-grades', {
+        body: { image: base64, modules: moduleInfos },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      const extracted: Array<{ moduleId: string; td?: number; tp?: number; exam?: number }> = data?.grades || [];
+      if (extracted.length === 0) {
+        toast({ title: 'Aucune note détectée', description: "Essayez une image plus nette.", variant: 'destructive' });
+        return;
+      }
+
+      setGrades((prev) => {
+        const next = { ...prev };
+        for (const g of extracted) {
+          next[g.moduleId] = {
+            td: g.td ?? prev[g.moduleId]?.td ?? null,
+            tp: g.tp ?? prev[g.moduleId]?.tp ?? null,
+            exam: g.exam ?? prev[g.moduleId]?.exam ?? null,
+          };
+        }
+        return next;
+      });
+
+      toast({ title: 'Notes importées', description: `${extracted.length} module(s) remplis.` });
+    } catch (err: any) {
+      toast({ title: 'Erreur de scan', description: err?.message || String(err), variant: 'destructive' });
+    } finally {
+      setScanning(false);
+    }
+  };
+
+
+
   const semesterAverage = calculateSemesterAverage(units, grades);
   const isPassing = semesterAverage !== null && semesterAverage >= 10;
   const totalCredits = getTotalCredits(units);
@@ -77,10 +142,25 @@ const SemesterView = ({ title, units, onBack }: SemesterViewProps) => {
               <ArrowLeft className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden sm:inline">Retour</span>
             </Button>
-            <Button variant="ghost" onClick={handleReset} className="text-primary-foreground hover:bg-primary-foreground/10 text-sm md:text-base px-2 md:px-4">
-              <RotateCcw className="w-4 h-4 mr-1 md:mr-2" />
-              <span className="hidden sm:inline">Réinitialiser</span>
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" onClick={handleScanClick} disabled={scanning} className="text-primary-foreground hover:bg-primary-foreground/10 text-sm md:text-base px-2 md:px-4">
+                {scanning ? <Loader2 className="w-4 h-4 mr-1 md:mr-2 animate-spin" /> : <ScanLine className="w-4 h-4 mr-1 md:mr-2" />}
+                <span className="hidden sm:inline">{scanning ? 'Scan…' : 'Scanner'}</span>
+              </Button>
+              <Button variant="ghost" onClick={handleReset} className="text-primary-foreground hover:bg-primary-foreground/10 text-sm md:text-base px-2 md:px-4">
+                <RotateCcw className="w-4 h-4 mr-1 md:mr-2" />
+                <span className="hidden sm:inline">Réinitialiser</span>
+              </Button>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={handleFileSelected}
+            />
+
           </div>
           <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">{title}</h1>
           <p className="text-primary-foreground/70 mt-1 text-sm md:text-base">
