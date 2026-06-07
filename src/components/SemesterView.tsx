@@ -64,6 +64,68 @@ const SemesterView = ({ title, units, onBack }: SemesterViewProps) => {
     try { localStorage.removeItem(storageKey); } catch {}
   };
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [scanning, setScanning] = useState(false);
+
+  const handleScanClick = () => fileInputRef.current?.click();
+
+  const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    setScanning(true);
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result as string);
+        r.onerror = () => reject(r.error);
+        r.readAsDataURL(file);
+      });
+
+      const moduleInfos = allModules.map((m) => ({
+        id: m.id,
+        name: m.name,
+        hasTd: m.tdWeight > 0,
+        hasTp: m.tpWeight > 0,
+        hasExam: m.examWeight > 0,
+      }));
+
+      const { data, error } = await supabase.functions.invoke('scan-grades', {
+        body: { image: base64, modules: moduleInfos },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      const extracted: Array<{ moduleId: string; td?: number; tp?: number; exam?: number }> = data?.grades || [];
+      if (extracted.length === 0) {
+        toast({ title: 'Aucune note détectée', description: "Essayez une image plus nette.", variant: 'destructive' });
+        return;
+      }
+
+      setGrades((prev) => {
+        const next = { ...prev };
+        for (const g of extracted) {
+          next[g.moduleId] = {
+            td: g.td ?? prev[g.moduleId]?.td ?? null,
+            tp: g.tp ?? prev[g.moduleId]?.tp ?? null,
+            exam: g.exam ?? prev[g.moduleId]?.exam ?? null,
+          };
+        }
+        return next;
+      });
+
+      toast({ title: 'Notes importées', description: `${extracted.length} module(s) remplis.` });
+    } catch (err: any) {
+      toast({ title: 'Erreur de scan', description: err?.message || String(err), variant: 'destructive' });
+    } finally {
+      setScanning(false);
+    }
+  };
+
+
+
   const semesterAverage = calculateSemesterAverage(units, grades);
   const isPassing = semesterAverage !== null && semesterAverage >= 10;
   const totalCredits = getTotalCredits(units);
