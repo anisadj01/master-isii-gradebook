@@ -142,10 +142,25 @@ const SemesterView = ({ title, units, onBack }: SemesterViewProps) => {
               <ArrowLeft className="w-4 h-4 mr-1 md:mr-2" />
               <span className="hidden sm:inline">Retour</span>
             </Button>
-            <Button variant="ghost" onClick={handleReset} className="text-primary-foreground hover:bg-primary-foreground/10 text-sm md:text-base px-2 md:px-4">
-              <RotateCcw className="w-4 h-4 mr-1 md:mr-2" />
-              <span className="hidden sm:inline">Réinitialiser</span>
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" onClick={handleScanClick} disabled={scanning} className="text-primary-foreground hover:bg-primary-foreground/10 text-sm md:text-base px-2 md:px-4">
+                {scanning ? <Loader2 className="w-4 h-4 mr-1 md:mr-2 animate-spin" /> : <ScanLine className="w-4 h-4 mr-1 md:mr-2" />}
+                <span className="hidden sm:inline">{scanning ? 'Scan…' : 'Scanner'}</span>
+              </Button>
+              <Button variant="ghost" onClick={handleReset} className="text-primary-foreground hover:bg-primary-foreground/10 text-sm md:text-base px-2 md:px-4">
+                <RotateCcw className="w-4 h-4 mr-1 md:mr-2" />
+                <span className="hidden sm:inline">Réinitialiser</span>
+              </Button>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={handleFileSelected}
+            />
+
           </div>
           <h1 className="text-xl md:text-2xl lg:text-3xl font-bold">{title}</h1>
           <p className="text-primary-foreground/70 mt-1 text-sm md:text-base">
