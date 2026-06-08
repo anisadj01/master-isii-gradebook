@@ -16,7 +16,11 @@ export interface UnitEnseignement {
   modules: Module[];
 }
 
-const STD = { tdWeight: 0.2, tpWeight: 0.2, examWeight: 0.6 };
+// CC = 40% / Exam = 60%. La plupart des modules n'ont qu'un seul type (TD ou TP).
+// Seul Cryptographie possède à la fois TD et TP.
+const TD_ONLY = { tdWeight: 0.4, tpWeight: 0, examWeight: 0.6 };
+const TP_ONLY = { tdWeight: 0, tpWeight: 0.4, examWeight: 0.6 };
+const TD_TP   = { tdWeight: 0.2, tpWeight: 0.2, examWeight: 0.6 };
 
 export const semester1Units: UnitEnseignement[] = [
   {
@@ -25,8 +29,8 @@ export const semester1Units: UnitEnseignement[] = [
     code: 'UEF1',
     type: 'fundamental',
     modules: [
-      { id: 'arch-log', name: 'Architecture Logicielle', coefficient: 3, credits: 6, ...STD },
-      { id: 'reseaux', name: 'Réseaux Avancés', coefficient: 2, credits: 4, ...STD },
+      { id: 'arch-log', name: 'Architecture Logicielle', coefficient: 3, credits: 6, ...TD_ONLY },
+      { id: 'reseaux', name: 'Réseaux Avancés', coefficient: 2, credits: 4, ...TP_ONLY },
     ],
   },
   {
@@ -35,8 +39,8 @@ export const semester1Units: UnitEnseignement[] = [
     code: 'UEF2',
     type: 'fundamental',
     modules: [
-      { id: 'ia-ml', name: 'Intelligence Artificielle : Apprentissage Automatique', coefficient: 3, credits: 4, ...STD },
-      { id: 'stats', name: 'Analyse Statistique des Données', coefficient: 2, credits: 4, ...STD },
+      { id: 'ia-ml', name: 'Intelligence Artificielle : Apprentissage Automatique', coefficient: 3, credits: 4, ...TP_ONLY },
+      { id: 'stats', name: 'Analyse Statistique des Données', coefficient: 2, credits: 4, ...TP_ONLY },
     ],
   },
   {
@@ -45,8 +49,8 @@ export const semester1Units: UnitEnseignement[] = [
     code: 'UEM1',
     type: 'methodology',
     modules: [
-      { id: 'multimedia', name: 'Multimédia', coefficient: 2, credits: 2, ...STD },
-      { id: 'optim', name: 'Optimisation Combinatoire', coefficient: 2, credits: 3, ...STD },
+      { id: 'multimedia', name: 'Multimédia', coefficient: 2, credits: 2, ...TP_ONLY },
+      { id: 'optim', name: 'Optimisation Combinatoire', coefficient: 2, credits: 3, ...TD_ONLY },
     ],
   },
   {
@@ -55,7 +59,7 @@ export const semester1Units: UnitEnseignement[] = [
     code: 'UEM2',
     type: 'methodology',
     modules: [
-      { id: 'securite', name: 'Méthodologies de Sécurité', coefficient: 2, credits: 2, ...STD },
+      { id: 'securite', name: 'Méthodologies de Sécurité', coefficient: 2, credits: 2, ...TD_ONLY },
     ],
   },
   {
@@ -64,7 +68,7 @@ export const semester1Units: UnitEnseignement[] = [
     code: 'UET1',
     type: 'transversal',
     modules: [
-      { id: 'images', name: "Introduction au Traitement d'Images", coefficient: 2, credits: 3, ...STD },
+      { id: 'images', name: "Introduction au Traitement d'Images", coefficient: 2, credits: 3, ...TP_ONLY },
     ],
   },
 ];
@@ -76,8 +80,8 @@ export const semester2Units: UnitEnseignement[] = [
     code: 'UEF3',
     type: 'fundamental',
     modules: [
-      { id: 'j2ee', name: 'Architecture Web J2EE', coefficient: 3, credits: 5, ...STD },
-      { id: 'bdd-avancees', name: 'Bases de Données Avancées', coefficient: 3, credits: 4, ...STD },
+      { id: 'j2ee', name: 'Architecture Web J2EE', coefficient: 3, credits: 5, ...TP_ONLY },
+      { id: 'bdd-avancees', name: 'Bases de Données Avancées', coefficient: 3, credits: 4, ...TP_ONLY },
     ],
   },
   {
@@ -86,8 +90,8 @@ export const semester2Units: UnitEnseignement[] = [
     code: 'UEF4',
     type: 'fundamental',
     modules: [
-      { id: 'data-mining', name: 'Data Mining', coefficient: 3, credits: 6, ...STD },
-      { id: 'entrepot', name: 'Entrepôt de Données', coefficient: 2, credits: 3, ...STD },
+      { id: 'data-mining', name: 'Data Mining', coefficient: 3, credits: 6, ...TP_ONLY },
+      { id: 'entrepot', name: 'Entrepôt de Données', coefficient: 2, credits: 3, ...TP_ONLY },
     ],
   },
   {
@@ -96,10 +100,9 @@ export const semester2Units: UnitEnseignement[] = [
     code: 'UEM3',
     type: 'methodology',
     modules: [
-      { id: 'crypto', name: 'Cryptographie', coefficient: 2, credits: 3, ...STD },
-      { id: 'meps', name: "Méthodes d'Évaluation des Performances des Systèmes", coefficient: 2, credits: 3, ...STD },
-      { id: 'vision', name: 'Introduction à la Vision par Ordinateur', coefficient: 2, credits: 3, ...STD },
-      { id: 'sad', name: "Systèmes d'Aide à la Décision", coefficient: 1, credits: 2, ...STD },
+      { id: 'crypto', name: 'Cryptographie', coefficient: 2, credits: 3, ...TD_TP },
+      { id: 'meps', name: "Méthodes d'Évaluation des Performances des Systèmes", coefficient: 2, credits: 3, ...TD_ONLY },
+      { id: 'vision', name: 'Introduction à la Vision par Ordinateur', coefficient: 2, credits: 3, ...TP_ONLY },
     ],
   },
   {
@@ -108,7 +111,7 @@ export const semester2Units: UnitEnseignement[] = [
     code: 'UED1',
     type: 'discovery',
     modules: [
-      { id: 'culture', name: "Culture d'entreprise / Déontologie du travail", coefficient: 1, credits: 2, ...STD },
+      { id: 'culture', name: "Culture d'entreprise / Déontologie du travail", coefficient: 1, credits: 2, ...TD_ONLY },
     ],
   },
   {

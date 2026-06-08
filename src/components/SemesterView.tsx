@@ -351,6 +351,14 @@ const SemesterView = ({ title, units, onBack }: SemesterViewProps) => {
             </DialogDescription>
           </DialogHeader>
 
+          <div className="rounded-md border border-primary/20 bg-primary/5 p-3 text-xs text-foreground/80 space-y-1">
+            <p className="font-semibold text-primary">📖 Petit manuel</p>
+            <p>1. Ouvrez votre application universitaire et faites une capture d'écran de la page <b>التقييم المستمر</b> (CC) et de la page <b>علامات الامتحانات</b> (Examen).</p>
+            <p>2. Sélectionnez les images ci-dessous depuis votre <b>galerie</b>.</p>
+            <p>3. Appuyez sur <b>Analyser</b>. L'IA remplira les bons champs (TD ou TP) selon les étiquettes détectées. Les modules sans note resteront vides.</p>
+          </div>
+
+
           <div className="space-y-3">
             <label className="block">
               <span className="text-sm font-medium text-foreground">📘 Image 1 — Contrôle Continu (CC / TD-TP)</span>

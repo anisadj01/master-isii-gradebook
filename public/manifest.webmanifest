@@ -1,0 +1,26 @@
+{
+  "name": "Master ISII — Calcul de Moyenne",
+  "short_name": "Master ISII",
+  "description": "Calculatrice de moyenne — Master ISII, Université d'Alger 1",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#16a34a",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "https://storage.googleapis.com/gpt-engineer-file-uploads/tIACyDo31Rgx3D6VxsfR86Ihmth1/uploads/1770069982849-Logo%20Initiales%20Nominatif%20Moderne%20Minimal%20Blanc%20Orange%20Noir.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://storage.googleapis.com/gpt-engineer-file-uploads/tIACyDo31Rgx3D6VxsfR86Ihmth1/uploads/1770069982849-Logo%20Initiales%20Nominatif%20Moderne%20Minimal%20Blanc%20Orange%20Noir.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
