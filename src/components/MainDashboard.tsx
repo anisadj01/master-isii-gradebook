@@ -1,13 +1,15 @@
-import { GraduationCap, BookOpen, Award, Calendar, ScanLine, Smartphone } from 'lucide-react';
+import { GraduationCap, BookOpen, Award, Calendar, HelpCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { semester1Units, semester2Units, getTotalCredits } from '@/lib/modules';
 
 interface MainDashboardProps {
   onNavigateToSemester: (semester: 1 | 2) => void;
+  onShowHelp?: () => void;
 }
 
-const MainDashboard = ({ onNavigateToSemester }: MainDashboardProps) => {
+const MainDashboard = ({ onNavigateToSemester, onShowHelp }: MainDashboardProps) => {
+
   const s1Count = semester1Units.reduce((n, u) => n + u.modules.length, 0);
   const s2Count = semester2Units.reduce((n, u) => n + u.modules.length, 0);
   const s1Credits = getTotalCredits(semester1Units);
