@@ -89,7 +89,7 @@ const MainDashboard = ({ onNavigateToSemester }: MainDashboardProps) => {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-bold text-foreground text-sm md:text-base">Semestre 1</h3>
-                      <p className="text-xs md:text-sm text-muted-foreground">9 modules • 30 crédits</p>
+                      <p className="text-xs md:text-sm text-muted-foreground">{s1Count} modules • {s1Credits} crédits</p>
                     </div>
                   </div>
                   <Button className="w-full mt-4 text-sm" variant="outline">
@@ -109,7 +109,8 @@ const MainDashboard = ({ onNavigateToSemester }: MainDashboardProps) => {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-bold text-foreground text-sm md:text-base">Semestre 2</h3>
-                      <p className="text-xs md:text-sm text-muted-foreground">9 modules • 30 crédits</p>
+                      <p className="text-xs md:text-sm text-muted-foreground">{s2Count} modules • {s2Credits} crédits</p>
+
                     </div>
                   </div>
                   <Button className="w-full mt-4 text-sm" variant="outline">
