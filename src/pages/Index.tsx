@@ -60,6 +60,9 @@ const Index = () => {
           onBack={handleBackToDashboard} 
         />
       )}
+
+      <OnboardingTour open={showTour} onClose={() => setShowTour(false)} />
+
     </>
   );
 };
