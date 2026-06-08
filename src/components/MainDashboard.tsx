@@ -120,8 +120,62 @@ const MainDashboard = ({ onNavigateToSemester }: MainDashboardProps) => {
               </Card>
             </div>
           </div>
+
+          {/* Nouveauté : Scanner OCR */}
+          <div className="mt-8 animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+            <Card className="border-0 shadow-card overflow-hidden">
+              <div className="h-1 bg-primary" />
+              <CardContent className="p-4 md:p-6">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
+                    <ScanLine className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-foreground text-sm md:text-base mb-1">
+                      Nouveau — Scanner vos notes 📷
+                    </h3>
+                    <p className="text-xs md:text-sm text-muted-foreground mb-2">
+                      Importez vos captures d'écran depuis l'application universitaire (FR ou AR) et l'IA remplit les champs automatiquement.
+                    </p>
+                    <ol className="text-xs md:text-sm text-muted-foreground space-y-1 list-decimal list-inside">
+                      <li>Ouvrez un semestre puis cliquez sur <b>Scanner</b> en haut.</li>
+                      <li>Choisissez la capture <b>التقييم المستمر</b> (CC) et/ou <b>علامات الامتحانات</b> (Examen).</li>
+                      <li>Appuyez sur <b>Analyser</b> — les notes apparaissent dans le tableau.</li>
+                    </ol>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Installer comme application */}
+          <div className="mt-4 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+            <Card className="border-0 shadow-card overflow-hidden">
+              <div className="h-1 bg-accent" />
+              <CardContent className="p-4 md:p-6">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-accent/10 text-accent shrink-0">
+                    <Smartphone className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-foreground text-sm md:text-base mb-1">
+                      Installer l'application sur votre téléphone 📱
+                    </h3>
+                    <p className="text-xs md:text-sm text-muted-foreground mb-2">
+                      Ajoutez le site à l'écran d'accueil pour l'ouvrir comme une vraie application, en plein écran.
+                    </p>
+                    <ul className="text-xs md:text-sm text-muted-foreground space-y-1">
+                      <li><b>iPhone (Safari)</b> : Partager <span className="inline-block">⬆️</span> → « Sur l'écran d'accueil ».</li>
+                      <li><b>Android (Chrome)</b> : Menu ⋮ → « Ajouter à l'écran d'accueil » / « Installer l'application ».</li>
+                    </ul>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </section>
+
 
       {/* Footer */}
       <footer className="py-6 md:py-8 text-center text-xs md:text-sm text-muted-foreground">
