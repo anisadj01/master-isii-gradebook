@@ -38,8 +38,12 @@ const Index = () => {
       )}
       
       {currentView === 'dashboard' && (
-        <MainDashboard onNavigateToSemester={handleNavigateToSemester} />
+        <MainDashboard
+          onNavigateToSemester={handleNavigateToSemester}
+          onShowHelp={() => setShowTour(true)}
+        />
       )}
+
       
       {currentView === 'semester1' && (
         <SemesterView 
