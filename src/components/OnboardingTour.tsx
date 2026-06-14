@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ScanLine, Smartphone, Calculator, ChevronRight, ChevronLeft, Check } from 'lucide-react';
 
@@ -28,61 +27,74 @@ const steps = [
 
 const OnboardingTour = ({ open, onClose }: OnboardingTourProps) => {
   const [i, setI] = useState(0);
+  if (!open) return null;
   const step = steps[i];
   const isLast = i === steps.length - 1;
   const Icon = step.icon;
 
   const finish = () => {
     try { localStorage.setItem('onboarding:v1', 'done'); } catch {}
-    onClose();
     setI(0);
+    onClose();
   };
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { if (!o) finish(); }}>
-      <DialogContent className="max-w-sm">
-        <div className="flex flex-col items-center text-center pt-2">
-          <div className="p-3 rounded-2xl bg-primary/10 text-primary mb-4">
-            <Icon className="w-8 h-8" />
-          </div>
-          <h2 className="text-lg font-bold text-foreground mb-2">{step.title}</h2>
-          <p className="text-sm text-muted-foreground whitespace-pre-line">{step.desc}</p>
+    <div className="fixed inset-0 z-[100] gradient-hero flex flex-col animate-fade-in-up">
+      {/* Top bar with Skip */}
+      <div className="flex justify-end p-4">
+        <Button variant="ghost" size="sm" onClick={finish} className="text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground">
+          Passer
+        </Button>
+      </div>
 
-          <div className="flex gap-1.5 mt-5">
-            {steps.map((_, idx) => (
-              <span
-                key={idx}
-                className={`h-1.5 rounded-full transition-all ${
-                  idx === i ? 'w-6 bg-primary' : 'w-1.5 bg-muted'
-                }`}
-              />
-            ))}
+      {/* Step content */}
+      <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
+        <div key={i} className="animate-fade-in-scale flex flex-col items-center max-w-md">
+          <div className="p-5 rounded-3xl gradient-accent shadow-glow mb-8">
+            <Icon className="w-12 h-12 text-primary" />
           </div>
+          <h2 className="text-2xl md:text-3xl font-bold text-primary-foreground mb-4">
+            {step.title}
+          </h2>
+          <p className="text-base md:text-lg text-primary-foreground/85 whitespace-pre-line leading-relaxed">
+            {step.desc}
+          </p>
         </div>
+      </div>
 
-        <div className="flex items-center justify-between gap-2 mt-4">
-          <Button variant="ghost" size="sm" onClick={finish}>
-            Passer
+      {/* Dots */}
+      <div className="flex justify-center gap-2 mb-6">
+        {steps.map((_, idx) => (
+          <span
+            key={idx}
+            className={`h-2 rounded-full transition-all ${
+              idx === i ? 'w-8 bg-primary-foreground' : 'w-2 bg-primary-foreground/30'
+            }`}
+          />
+        ))}
+      </div>
+
+      {/* Nav buttons */}
+      <div className="flex items-center justify-between gap-3 p-6 pb-10">
+        <Button
+          variant="ghost"
+          onClick={() => setI(i - 1)}
+          disabled={i === 0}
+          className="text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground disabled:opacity-0"
+        >
+          <ChevronLeft className="w-5 h-5 mr-1" /> Précédent
+        </Button>
+        {isLast ? (
+          <Button size="lg" onClick={finish} className="bg-primary-foreground text-primary hover:bg-primary-foreground/90">
+            <Check className="w-5 h-5 mr-1" /> Commencer
           </Button>
-          <div className="flex gap-2">
-            {i > 0 && (
-              <Button variant="outline" size="sm" onClick={() => setI(i - 1)}>
-                <ChevronLeft className="w-4 h-4 mr-1" /> Précédent
-              </Button>
-            )}
-            {isLast ? (
-              <Button size="sm" onClick={finish}>
-                <Check className="w-4 h-4 mr-1" /> Commencer
-              </Button>
-            ) : (
-              <Button size="sm" onClick={() => setI(i + 1)}>
-                Suivant <ChevronRight className="w-4 h-4 ml-1" />
-              </Button>
-            )}
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        ) : (
+          <Button size="lg" onClick={() => setI(i + 1)} className="bg-primary-foreground text-primary hover:bg-primary-foreground/90">
+            Suivant <ChevronRight className="w-5 h-5 ml-1" />
+          </Button>
+        )}
+      </div>
+    </div>
   );
 };
 
